@@ -48,7 +48,10 @@ class Shazam():
         self.print_debug("Creating footprint for: " + filename)
 
         sr,x = scipy.io.wavfile.read(filename)
-        x = x.T[0]
+
+        if len(x.shape) == 2 and x.shape[1] == 2:
+            x = x.T[0]
+
         ## Parameters: 10ms step, 30ms window
         nstep = int(sr * 0.01)
         nwin  = int(sr * 0.03)
