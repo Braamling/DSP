@@ -28,7 +28,6 @@ class Shazam():
 
         # define an 8-connected neighborhood
         neighborhood = generate_binary_structure(2,2)
-        #neighborhood = np.full((2, 6), True)
 
         #apply the local maximum filter; all pixel of maximal value 
         #in their neighborhood are set to 1
@@ -156,7 +155,7 @@ if __name__ == '__main__':
     sample_file = "Garrulus_glandarius_gaai.wav"
 
     # Create shazam object
-    shazam = Shazam(False, False)
+    shazam = Shazam(debug=False, plot=False)
 
     # shazam.create_footprint(sample_folder + sample_file)
     
