@@ -23,6 +23,7 @@ class Shazam():
 
         # define an 8-connected neighborhood
         neighborhood = generate_binary_structure(2,2)
+        neighborhood = np.full((20,3), True)
 
         #apply the local maximum filter; all pixel of maximal value 
         #in their neighborhood are set to 1
@@ -110,7 +111,7 @@ class Shazam():
         # Compare all database entries with the footprint
         for name, entry in self.database.iteritems():
             # Get the highest values with the best match
-            results[name] = np.amax(signal.fftconvolve(footprint, entry))
+            results[name] = np.amax(signal.fftconvolve(footprint, entry, 'same'))
 
         return max(results.iteritems(), key=operator.itemgetter(1))[0]
 
@@ -133,8 +134,8 @@ class Shazam():
 
 if __name__ == '__main__':
     db_folder = "Birds/database/"
-    sample_folder = "Birds/database/"
-    sample_file = "track16_raaf.wav"
+    sample_folder = "Birds/samples/"
+    sample_file = "alcedo_atthis_ijsvogel.wav"
 
     shazam = Shazam()
     shazam.build_database(db_folder)
