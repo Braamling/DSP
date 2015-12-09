@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import scipy.io.wavfile
 import numpy as np
 import os
+import operator
 
 
 from scipy import signal
@@ -9,7 +10,7 @@ from scipy.ndimage.filters import maximum_filter
 from scipy.ndimage.morphology import generate_binary_structure, binary_erosion
 
 class Shazam():
-    database = []
+    database = {}
     debug = True
 
     # http://stackoverflow.com/questions/3684484/peak-detection-in-a-2d-array
@@ -86,13 +87,32 @@ class Shazam():
 
         return peaks
 
+    # def corrilate(self, sample):
+    #     b[data_length/2:data_length/2+data_length] = a # This works for data_length being even
+
+    #     # Do an array flipped convolution, which is a correlation.
+    #     c = signal.fftconvolve(b, a[::-1], mode='valid') 
+
+    #     # Use numpy.correlate for comparison
+    #     d = numpy.correlate(a, a, mode='same')
+
+    #     # c will be exactly the same as d, except for the last sample (which 
+    #     # completes the symmetry)
+    #     numpy.allclose(c[:-1], d) # Should be True
+
     def find_match(self, filename):
         self.print_debug("Starting match for: " + filename)
         
         # Create a footprint of the track
         footprint = self.create_footprint(filename)
 
+        results = {}
+        # Compare all database entries with the footprint
+        for name, entry in self.database.iteritems():
+            # Get the highest values with the best match
+            results[name] = np.amax(signal.fftconvolve(footprint, entry))
 
+        return max(results.iteritems(), key=operator.itemgetter(1))[0]
 
     def build_database(self, dir):
         """ Create a database from a files in a directory """
@@ -102,7 +122,7 @@ class Shazam():
 
         for i, filename in enumerate(files):
             self.print_debug("Initialized " + str(i + 1) + "/" + str(len(files)) + " samples.")
-            self.database.append(self.create_footprint(dir + filename))
+            self.database[filename] = self.create_footprint(dir + filename)
 
         self.print_debug("Database Initialized")
 
@@ -112,6 +132,12 @@ class Shazam():
 
 
 if __name__ == '__main__':
+    db_folder = "Birds/database/"
+    sample_folder = "Birds/database/"
+    sample_file = "track16_raaf.wav"
+
     shazam = Shazam()
-    shazam.build_database("Birds/database/")
-    shazam.find_match('Birds/database/track01_ijsvogel.wav')
+    shazam.build_database(db_folder)
+    match_file = shazam.find_match(sample_folder + sample_file)
+
+    print("We have matched " + sample_file + " to " + match_file)
