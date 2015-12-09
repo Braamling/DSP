@@ -23,7 +23,7 @@ class Shazam():
 
         # define an 8-connected neighborhood
         neighborhood = generate_binary_structure(2,2)
-        neighborhood = np.full((20,3), True)
+        neighborhood = np.full((10,6), True)
 
         #apply the local maximum filter; all pixel of maximal value 
         #in their neighborhood are set to 1
@@ -91,18 +91,6 @@ class Shazam():
 
         return peaks
 
-    # def corrilate(self, sample):
-    #     b[data_length/2:data_length/2+data_length] = a # This works for data_length being even
-
-    #     # Do an array flipped convolution, which is a correlation.
-    #     c = signal.fftconvolve(b, a[::-1], mode='valid') 
-
-    #     # Use numpy.correlate for comparison
-    #     d = numpy.correlate(a, a, mode='same')
-
-    #     # c will be exactly the same as d, except for the last sample (which 
-    #     # completes the symmetry)
-    #     numpy.allclose(c[:-1], d) # Should be True
 
     def find_match(self, filename):
         self.print_debug("Starting match for: " + filename)
