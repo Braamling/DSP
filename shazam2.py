@@ -11,7 +11,8 @@ from scipy.ndimage.morphology import generate_binary_structure, binary_erosion
 
 class Shazam():
     database = {}
-    debug = True
+    debug = False
+    plot = False
 
     # http://stackoverflow.com/questions/3684484/peak-detection-in-a-2d-array
     def detect_peaks(self, image):
@@ -23,7 +24,7 @@ class Shazam():
 
         # define an 8-connected neighborhood
         neighborhood = generate_binary_structure(2,2)
-        neighborhood = np.full((10,6), True)
+        neighborhood = np.full((30,20), True)
 
         #apply the local maximum filter; all pixel of maximal value 
         #in their neighborhood are set to 1
@@ -42,6 +43,7 @@ class Shazam():
         #we obtain the final mask, containing only peaks, 
         #by removing the background from the local_max mask
         detected_peaks = local_max - eroded_background
+
         return detected_peaks.astype(int)
 
     def create_footprint(self, filename):
@@ -75,22 +77,24 @@ class Shazam():
         # Retrieve peaks 
         peaks = self.detect_peaks(X.T)
 
+        if self.plot:
+            plt.imshow(X.T, interpolation='nearest',
+                       origin='lower',
+                       aspect='auto')
 
-        plt.imshow(X.T, interpolation='nearest',
-                   origin='lower',
-                   aspect='auto')
-
-        # plt.show()
+            plt.show()
 
 
-        plt.imshow(peaks, interpolation='nearest',
-                   origin='lower',
-                   aspect='auto')
+        if self.plot:
+            plt.imshow(peaks, interpolation='nearest',
+                       origin='lower',
+                       aspect='auto')
+
+            plt.show()
 
         self.print_debug("Footprint created for: " + filename)
 
         return peaks
-
 
     def find_match(self, filename):
         self.print_debug("Starting match for: " + filename)
@@ -98,13 +102,30 @@ class Shazam():
         # Create a footprint of the track
         footprint = self.create_footprint(filename)
 
+        footprint = np.flipud(np.fliplr(footprint))
+
         results = {}
         # Compare all database entries with the footprint
         for name, entry in self.database.iteritems():
             # Get the highest values with the best match
-            results[name] = np.amax(signal.fftconvolve(footprint, entry, 'same'))
+            # results[name] = np.amax(signal.fftconvolve(footprint, entry, 'same'))
+
+            convolved = signal.fftconvolve(entry, footprint, 'same')
+            # convolved_norm =  convolved/np.linalg.norm(convolved)
+            results[name] = np.amax(convolved)
 
         return max(results.iteritems(), key=operator.itemgetter(1))[0]
+
+    def find_n(self, dir):
+        """ Create a database from a files in a directory """
+        
+        files = os.listdir(dir)
+
+        for i, filename in enumerate(files):
+            self.print_debug("Checking " + str(i + 1) + "/" + str(len(files)) + " samples.")
+            match = self.find_match(dir + filename)
+            print("Matched " + filename + " To " + match)
+
 
     def build_database(self, dir):
         """ Create a database from a files in a directory """
@@ -126,10 +147,20 @@ class Shazam():
 if __name__ == '__main__':
     db_folder = "Birds/database/"
     sample_folder = "Birds/samples/"
-    sample_file = "alcedo_atthis_ijsvogel.wav"
+    sample_file = "Garrulus_glandarius_gaai.wav"
 
+    # Create shazam object
     shazam = Shazam()
-    shazam.build_database(db_folder)
-    match_file = shazam.find_match(sample_folder + sample_file)
 
-    print("We have matched " + sample_file + " to " + match_file)
+    # shazam.create_footprint(sample_folder + sample_file)
+    
+    # Prepare database
+    shazam.build_database(db_folder)
+
+    # Check all samples
+    shazam.find_n(sample_folder)
+
+    # Check single sample
+    # match_file = shazam.find_match(sample_folder + sample_file)
+
+    # print("We have matched " + sample_file + " to " + match_file)
