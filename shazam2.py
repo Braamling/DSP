@@ -6,13 +6,17 @@ import operator
 
 
 from scipy import signal
-from scipy.ndimage.filters import maximum_filter
+from scipy.ndimage.filters import maximum_filter, gaussian_filter
 from scipy.ndimage.morphology import generate_binary_structure, binary_erosion
 
 class Shazam():
     database = {}
     debug = False
     plot = False
+
+    def __init__(self, debug, plot):
+        self.debug = debug
+        self.plot = plot
 
     # http://stackoverflow.com/questions/3684484/peak-detection-in-a-2d-array
     def detect_peaks(self, image):
@@ -24,7 +28,7 @@ class Shazam():
 
         # define an 8-connected neighborhood
         neighborhood = generate_binary_structure(2,2)
-        neighborhood = np.full((30,20), True)
+        neighborhood = np.full((2, 6), True)
 
         #apply the local maximum filter; all pixel of maximal value 
         #in their neighborhood are set to 1
@@ -150,7 +154,7 @@ if __name__ == '__main__':
     sample_file = "Garrulus_glandarius_gaai.wav"
 
     # Create shazam object
-    shazam = Shazam()
+    shazam = Shazam(False, False)
 
     # shazam.create_footprint(sample_folder + sample_file)
     
