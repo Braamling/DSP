@@ -28,7 +28,7 @@ class Shazam():
 
         # define an 8-connected neighborhood
         neighborhood = generate_binary_structure(2,2)
-        neighborhood = np.full((2, 6), True)
+        #neighborhood = np.full((2, 6), True)
 
         #apply the local maximum filter; all pixel of maximal value 
         #in their neighborhood are set to 1
