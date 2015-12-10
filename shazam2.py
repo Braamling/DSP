@@ -54,6 +54,8 @@ class Shazam():
         self.print_debug("Creating footprint for: " + filename)
 
         sr,x = scipy.io.wavfile.read(filename)
+        
+        #x = scipy.signal.resample(x, round(len(x) * 8000/44100))
 
         if len(x.shape) == 2 and x.shape[1] == 2:
             x = x.T[0]
