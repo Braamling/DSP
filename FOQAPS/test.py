@@ -1,5 +1,6 @@
 import alsaaudio, sys, audioop
 import time
+import scipy
  
 class FOQAPS():
 
