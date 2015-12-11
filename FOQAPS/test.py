@@ -30,6 +30,15 @@ class FOQAPS():
         self.inp.setformat(alsaaudio.PCM_FORMAT_FLOAT_LE)#16 bit little endian
         self.inp.setperiodsize(period_size)
          
+         
+    def foqaps_butter(self, order, freq , data, filter_type = 'lowpass'):
+    """ Order; the order of the filter (int). 
+        Freq; scalar or length-2 sequence giving the critical frequencies.
+        Data; N-dimensional input array.
+        Filter_type: {‘lowpass’, ‘highpass’, ‘bandpass’, ‘bandstop’}, optional.
+    """
+        a, b = scipy.signal.butter(order, freq, btype = filter_type)
+        return scipy.signal.filtfilt(b, a, data)
 
     def playback_audio_realtime(self, end_time):
         run_time = 0
