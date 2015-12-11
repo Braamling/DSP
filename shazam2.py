@@ -46,7 +46,7 @@ class Shazam():
 
         #we obtain the final mask, containing only peaks, 
         #by removing the background from the local_max mask
-        detected_peaks = local_max - eroded_background
+        detected_peaks = local_max - background
 
         return detected_peaks.astype(int)
 
@@ -152,7 +152,7 @@ class Shazam():
 
 if __name__ == '__main__':
     db_folder = "Birds/database/"
-    sample_folder = "Birds/samples/"
+    sample_folder = "Birds/subsamples/"
     sample_file = "Garrulus_glandarius_gaai.wav"
 
     # Create shazam object
