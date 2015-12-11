@@ -115,7 +115,7 @@ class FOQAPS():
             buffer = ""
             length = 0
             while comp_time > self.period_size / float(self.frame_rate):
-                l,date = self.inp.read()
+                l,data = self.inp.read()
                 comp_time -= self.period_size / float(self.frame_rate)
                 buffer = buffer + data
                 length = length + l
