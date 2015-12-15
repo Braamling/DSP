@@ -24,7 +24,7 @@ Detroy input stream to prevent memory issues.
 ##### *create_output_stream*
 Create an output stream and store it in the object 
 
-##### *execute_filter
+##### *execute_filter*
 Execute the actual filter over the buffer.
 
 ```
@@ -88,3 +88,6 @@ Example use of the FOQAPS library using a lowpass filter.
 *bandpass.py*
 Example of the FOQAPS library using a bandpass filter.
 
+#### Authors
+Authors: Wouter Vrielink & Bram van den Akker
+Date: 15-12-2015
