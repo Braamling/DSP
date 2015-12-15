@@ -1,8 +1,8 @@
 import alsaaudio
 import struct
 import time
-import scipy
- 
+from scipy import signal
+
 class FOQAPS():
 
     """ Initialize input and output streams """
@@ -12,7 +12,7 @@ class FOQAPS():
         self.frame_size = channels * sample_size
         frame_rate = 44100
         byte_rate = frame_rate * self.frame_size
-        self.period_size = 160
+        self.period_size = 1024
 
         # Create output object
         self.out = alsaaudio.PCM(alsaaudio.PCM_PLAYBACK, alsaaudio.PCM_NORMAL)
@@ -34,13 +34,13 @@ class FOQAPS():
          
          
     def foqaps_butter(self, order, freq , data, filter_type = 'lowpass'):
-    """ Order; the order of the filter (int). 
+        """ Order; the order of the filter (int). 
         Freq; scalar or length-2 sequence giving the critical frequencies.
         Data; N-dimensional input array.
-        Filter_type: {‘lowpass’, ‘highpass’, ‘bandpass’, ‘bandstop’}, optional.
-    """
-        a, b = scipy.signal.butter(order, freq, btype = filter_type)
-        return scipy.signal.filtfilt(b, a, data)
+        Filter_type: {'lowpass', 'highpass', 'bandpass', 'bandstop'}, optional.
+        """
+        a, b = signal.butter(order, freq, btype = filter_type, analog=False)
+        return signal.lfilter(b, a, data)
 
     def playback_audio_realtime(self, end_time):
         run_time = 0
@@ -51,14 +51,14 @@ class FOQAPS():
             # Convert to an array of floats
             floats = struct.unpack('f' * self.period_size, data)
 
+
+            result = self.foqaps_butter(5, .03, floats)
             #
             # HERE IS SPACE TO MANIPULATE AUDIO
             #
-            win = pg.GraphicsWindow()  # Automatically generates grids with multiple items
-            win.addPlot(floats, row=0, col=0)
 
             # Convert floats back to a struct for output.
-            test = struct.pack('f' * self.period_size, *floats)
+            test = struct.pack('f' * self.period_size, *result)
 
             # Output audio
             self.out.write(test)
