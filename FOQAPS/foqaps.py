@@ -1,6 +1,6 @@
 """
-authors: Wouter Vrielink & Bram van den Akker
-date: 15-12-2015
+Authors: Wouter Vrielink & Bram van den Akker
+Date: 15-12-2015
 
 "Filters Over Quality Audio Processing Software"
 Module that implements realtime audio filters. 
@@ -15,22 +15,24 @@ will be generated with the realtime data.
 import alsaaudio
 import struct
 import time
+import gc
 
 from scipy import signal
 import numpy as np
 
 class FOQAPS():
-    def __init__(self):
-        """ Initialize input and output streams """
-        self.channels = 1
-        sample_size = 1
+    def __init__(self, channels=1, sample_size=1, frame_rate=44100, period_size=320):
+        """ Initialize stream variables and output stream. 
+        channels [default=1] Amount of channels to use in audio
+        sample_size [default=1] Size of each sample
+        frame_rate [default=44100] The frame_rate to use for input and output
+        period_size [default=320] periode size of each buffer. """
+        self.channels = channels
         self.frame_size = self.channels * sample_size
-        self.frame_rate = 44100
-        byte_rate = self.frame_rate * self.frame_size
-        self.period_size = 320
+        self.frame_rate = frame_rate
+        self.period_size = period_size
 
         self.create_output_stream()
-        self.create_input_stream()
 
     def create_input_stream(self):
         """ Create an input stream and store it in the object.
@@ -45,6 +47,15 @@ class FOQAPS():
         self.inp.setformat(alsaaudio.PCM_FORMAT_FLOAT_LE)#16 bit little endian
         self.inp.setperiodsize(self.period_size)
 
+    def destroy_input_stream(self):
+        """ Detroy input stream to prevent memory issues. """
+
+        # Destroy the stream
+        del self.inp
+
+        # Garbage collect
+        gc.collect()
+
     def create_output_stream(self):
         """ Create an output stream and store it in the object """
         self.out = alsaaudio.PCM(alsaaudio.PCM_PLAYBACK, alsaaudio.PCM_NORMAL)
@@ -55,12 +66,15 @@ class FOQAPS():
         self.out.setrate(self.frame_rate)
         self.out.setperiodsize(self.period_size)
 
-         
     def execute_filter(self, b, a, buffer, pre_buffer):
-        """ Order; the order of the filter (int). 
-        Freq; scalar or length-2 sequence giving the critical frequencies.
-        Data; N-dimensional input array.
-        Filter_type: {'lowpass', 'highpass', 'bandpass', 'bandstop'}, optional.
+        """ Execute the actual filter over the buffer.
+        b: The numerator coefficient vector in a 1-D sequence.
+        a: The denominator coefficient vector in a 1-D sequence. 
+            If a[0] is not 1, then both a and b are normalized by a[0].
+        buffer: The current buffer from the input stream (1d array)
+        pre_buffer: The previous buffer from the input stream (1d array)
+
+        return 1d output with the length of a single buffer.
         """
         timing = time.time()
         pre_buffer = np.concatenate([pre_buffer, buffer])
@@ -71,17 +85,21 @@ class FOQAPS():
         # Only return the output based on the current buffer (drop pre_buffer)
         return output[len(output)/2:]
 
-
     def rt_lfilter(self, b, a, run_time):
-        """ Realtime lfilter
+        """ Realtime linear filter
         Execute a filter over the audio captured with the microfone.
 
-        b: 
-        a: 
+        b: The numerator coefficient vector in a 1-D sequence.
+        a: The denominator coefficient vector in a 1-D sequence. 
+            If a[0] is not 1, then both a and b are normalized by a[0].
         run_time: Time to run filter in seconds
         """
-
+        # Store the start time of the filter to determine duration.
         start_time = time.time()
+
+        # Set up an input stream, stored in object, to be removed after
+        # the filter is completed.
+        self.create_input_stream()
 
         # Used to determen the computational delay.
         comp_time = 0
@@ -129,3 +147,4 @@ class FOQAPS():
             # Keep the buffer to use as samples for the next buffer.
             prev_buffer = floats
 
+        self.destroy_input_stream()
